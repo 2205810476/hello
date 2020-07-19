@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style type="text/css">
+			.grid{
+				margin: auto;
+				width: 500px;
+				text-align: center;
+				border-radius: 20px 20px 20px 20px;
+			}
+			.grid table{
+				width: 100%;
+				border-collapse: collapse;
+				border-radius: 20px 20px 20px 20px;
+			}
+			.grid th,td{
+				padding: 10;
+				border: 3px dashed #f3dcab;
+				height: 35px;
+				line-height: 35px;
+				
+			}
+			.grid th{
+				background-color: #f3dcab;
+			}
+			.book{
+				padding-bottom: 10px;
+				padding-top: 5px;
+				background-color: #f3dcab;
+				
+			}
+			#box{
+				padding-bottom: px;
+				padding-top: ;
+				background-color: #e8daa6;
+				border-radius: 20px 20px 20px 20px;
+			}
+			#total{
+				height: 0px;
+				line-height: 0px;
+				background-color:#f3dcab ;
+				border-top: 1px solid #f3dcab;
+			}
+			input{
+				outline-style: none;
+				boder:1px solid #b5a36b;
+				border-radius: 7px;
+			}
+			button{
+				border-radius: 5px;
+				cursor: pointer;
+				color: #9c684d;
+			}
+			h1{
+				font-family: 幼圆
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<div class="grid">
+				<div id="box">
+					<h1>图书管理</h1>
+					<div class="book">
+						<div >
+							<label for="id">
+								编号
+								</label>
+							<input type="text" id="id" v-model="id" :disabled="flag" v-focus />
+							<label for="name"></label>
+							<label for="name">
+								名称
+								</label>
+							<input type="text" id="name" v-model="name"/>
+							<button @click="handle" disabled="submitflag" >提交</button>
+						</div>
+					</div>
+				</div>
+				<div id="total">
+					<span>图书总数:</span>
+					<span>{{total}}</span>
+				</div>
+				<table >
+					<thead>
+						<tr>
+							<th>编号</th>
+							<th>名称</th>
+							<th>时间</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+	
+						<tr :key='item.id' v-for="item in books">
+							<td>{{item.id}}</td>
+							<td>{{item.name}}</td>
+							<td>{{item.date | format('yyyy-MM-dd hh:mm:ss')}}</td>
+							<td>
+								<a href="" @click.prevent='toEdit(item.id)'>修改</a>
+								<span id="">|</span>
+								<a href="" @click.prevent='deleteBook(item.id)'>删除</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<script src="./vue.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			Vue.directive('focus',{
+				inserted:function(el){
+					el.focus();
+				}
+			});
+			Vue.filter('format',function(value,arg){
+				function dateFormat(date,format){
+				if(typeof date=='string'){
+					var mts=date.match(/(\/Date\((\d+)\)\/)/);
+					if(mts && mts.length>=3){
+						date=parseInt(mts[2]);
+					}
+				}
+			date=new Date(date);
+			if(!date||date.toUTCString()=='Invalid Date'){
+				return '';
+			}
+			var map={
+				'M':date.getMonth()+1,
+				'd':date.getDate(),
+				'h':date.getHours(),
+				'm':date.getMinutes(),
+				's':date.getSeconds(),
+				'q':Math.floor((date.getMonth()+3)/3),
+				'S':date.getMilliseconds(),
+			};
+			format=format.replace(/([yMdhmsqS])+/g, function(all,t){
+				var v=map[t];
+				if(v!==undefined){
+					if(all.length>1){
+						v='0'+v;
+						v=v.substr(v.length-2);
+					}
+					return v;
+				}else if(t=='y'){
+					return(date.getFullYear()+'').substr(4-all.length);
+				}
+				return all;
+			});
+			return format;
+			}
+			return dateFormat(value,arg);
+			});
+			var vm=new Vue({
+				el:'#app',
+				data:{
+					id:'',
+					name:'',
+					flag:false,
+					submitflag:false,
+					books:[{
+					    id:1,
+						name:'活着',
+						date:'2020-07-07'
+					},
+					{
+					    id:2,
+						name:'西游记',
+						date:'2020-07-07'
+					},
+					{
+					    id:3,
+						name:'新华字典',
+						date:'2020-07-07'
+					},
+					{
+					    id:4,
+						name:'冒险小虎队',
+						date:'2020-07-07'
+					},
+					]
+				},
+				methods:{
+					handle:function(){
+						if(this.flag){
+							this.books.some((item) =>{
+								if(item.id==this.id){
+									item.name=this.name;
+									return true;
+								}
+							});
+							this.flag=false;
+						}else{
+							//添加图书
+							var book={};
+							book.id=this.id;
+							book.name=this.name;
+							book.date='';
+							this.books.push(book);
+							//清空表单
+							this.id='';
+							this.name='';
+						}
+						this.id='';
+						this.name='';
+					},
+					toEdit:function(id){
+						this.flag=true
+						console.log(id)
+						var book= this.books.filter(function(item){
+							return item.id==id;
+						});
+						console.log(book)
+						this.id=book[0].id;
+						this.name=book[0].name;
+					},
+					deleteBook:function(){
+						var index=this.books.findIndex(function(item){
+							return item.id==id;
+						});
+						this.books.splice(index,1);
+					}
+				},
+				computed:{
+					total:function(){
+						return this.books.length;
+					}
+				},
+				watch:{
+					name:function(val){
+						var flag=this.books.some(function(item){
+							return item.name==val;
+						});
+						if(flag){
+							this.submitflag=true;
+						}else{
+							this.submitflag=false;
+						}
+					}
+				},
+				mountde:function(){
+					
+				}
+			});
+		</script>
+	</body>
+</html>
